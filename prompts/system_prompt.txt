@@ -219,7 +219,23 @@ AC_TYPE      → "AC", "Non AC", "non-ac", "air conditioned",
 BUS_TYPE     → "Volvo", "Bharat Benz", "benz", "Scania",
                "Ashok Leyland", "Electric", "electric bus",
                "Mini bus", "Luxury bus"
-               ANY bus manufacturer / brand / make name.
+               
+               ⚠️ CRITICAL: NEVER template the standalone word "bus" or "buses"!
+               These are GENERIC NOUNS that must stay as text.
+               
+               ✗ WRONG: "find bus transportation" → "find {BUS_TYPE} transportation"
+               ✓ CORRECT: "find bus transportation" → "find bus transportation"
+               
+               ✗ WRONG: "bus ticket" → "{BUS_TYPE} ticket"
+               ✓ CORRECT: "bus ticket" → "bus ticket"
+               
+               ✗ WRONG: "a bus from Delhi" → "a {BUS_TYPE} from Delhi"
+               ✓ CORRECT: "a bus from Delhi" → "a bus from Delhi"
+               
+               ONLY use {BUS_TYPE} for SPECIFIC bus types/brands like those listed above.
+               ✓ "Volvo bus" → "{BUS_TYPE} bus"
+               ✓ "Scania Multi Axle" → "{BUS_TYPE}"
+               
                NOTE: compound phrases like "Bharat Benz AC Sleeper"
                must be SPLIT — "Bharat Benz" → BUS_TYPE,
                "AC" → AC_TYPE, "Sleeper" → SEAT_TYPE.
@@ -272,20 +288,47 @@ DEALS        → "MY FREE TICKET", "my deal", "group deal",
                "festival season discount"
                ANY promotional deal or offer NAME (not the code).
                ★ These are offer NAMES, not coupon codes.
+               
+               ⚠️ CRITICAL: NEVER template these generic words as {DEALS}:
+               "discounts", "discount", "deals", "offers", "offer",
+               "coupons", "coupon"
+               These are GENERIC NOUNS and must stay as text.
+               
+               ✗ WRONG: "what discounts are available" → "what {DEALS} are available"
+               ✓ CORRECT: "what discounts are available" → "what discounts are available"
+               
+               ✗ WRONG: "what discounts and coupons" → "what {DEALS} and {COUPON_CODE}"
+               ✓ CORRECT: "what discounts and coupons" → "what discounts and coupons"
+               
+               ONLY use {DEALS} for SPECIFIC deal names like:
+               ✓ "apply MY FREE TICKET" → "apply {DEALS}"
+               ✓ "use group deal" → "use {DEALS}"
 
 COUPON_CODE  → "WELCOMEMMT", "BUS250", "BUS200", "BUS100",
                "WELCOMEBACK", "FIRST", "FIRSTBUS", "NEWYEAR",
                "TKM", "MMTSUPER"
-               ANY alphanumeric coupon/promo code to be entered.
-               ★ CRITICAL DISTINCTION: Coupon codes are alphanumeric
-               strings (often ALL CAPS with numbers) that users type in.
-               ★ If it looks like "apply coupon ABC123" → {COUPON_CODE}
-               ★ If it says "apply MY FREE TICKET deal" → {DEALS}
-               Examples:
-               ✓ "apply coupon BUS250" → "apply coupon {COUPON_CODE}"
-               ✓ "use promo code WELCOMEMMT" → "use promo code {COUPON_CODE}"
-               ✓ "apply MY FREE TICKET" → "apply {DEALS}"
-               ✓ "get group deal discount" → "get {DEALS} discount"
+               
+               ⚠️ CRITICAL RULE - READ CAREFULLY:
+               ONLY replace SPECIFIC coupon code VALUES from the list above.
+               DO NOT replace the WORDS "coupon code", "promo code", "discount code".
+               
+               These are GENERIC NOUNS that describe what the user wants.
+               They must STAY AS TEXT in the template.
+               
+               ✓ CORRECT: "apply coupon BUS250" → "apply coupon {COUPON_CODE}"
+               ✓ CORRECT: "use WELCOMEMMT" → "use {COUPON_CODE}"
+               
+               ✗ WRONG: "provide a coupon code" → "provide a {COUPON_CODE}"
+               ✓ CORRECT: "provide a coupon code" → "provide a coupon code"
+               
+               ✗ WRONG: "give me any coupon code" → "give me any {COUPON_CODE}"
+               ✓ CORRECT: "give me any coupon code" → "give me any coupon code"
+               
+               ✗ WRONG: "with a coupon code for" → "with a {COUPON_CODE} for"
+               ✓ CORRECT: "with a coupon code for" → "with a coupon code for"
+               
+               Think: Is this a SPECIFIC code value or just the generic words?
+               If generic words → DO NOT TEMPLATE IT!
 
 ADD_ONS      → "trip assured", "insurance", "travel insurance",
                "free cancellation", "cancel anytime",
@@ -865,6 +908,48 @@ MISTAKE 15: Processing CAB/TAXI queries as bus queries
 MISTAKE 16: Processing vague generic queries
   ✗ "any code." → template: "any code."
   ✓ "any code." → {"ignore": true}  — Too vague, no bus context
+
+MISTAKE 17: Templating generic phrases as entity placeholders
+  ⚠️ THIS IS A CRITICAL ERROR - PAY CLOSE ATTENTION ⚠️
+  
+  WRONG Examples (DO NOT DO THIS):
+  ✗ "provide me with a coupon code" → "provide me with a {COUPON_CODE}"
+  ✗ "give me a promo code" → "give me a {COUPON_CODE}"
+  ✗ "any coupon code" → "any {COUPON_CODE}"
+  ✗ "with a coupon code for" → "with a {COUPON_CODE} for"
+  ✗ "send me any discount code" → "send me any {COUPON_CODE}"
+  
+  ✗ "find bus transportation" → "find {BUS_TYPE} transportation"
+  ✗ "bus ticket for Delhi" → "{BUS_TYPE} ticket for Delhi"
+  ✗ "book a bus" → "book a {BUS_TYPE}"
+  ✗ "the bus options" → "the {BUS_TYPE} options"
+  
+  CORRECT Way (DO THIS):
+  ✓ "provide me with a coupon code" → "provide me with a coupon code"
+  ✓ "give me a promo code" → "give me a promo code"
+  ✓ "any coupon code" → "any coupon code"
+  ✓ "with a coupon code for" → "with a coupon code for"
+  ✓ "send me any discount code" → "send me any discount code"
+  
+  ✓ "find bus transportation" → "find bus transportation"
+  ✓ "bus ticket for Delhi" → "bus ticket for Delhi"
+  ✓ "book a bus" → "book a bus"
+  ✓ "the bus options" → "the bus options"
+  
+  ONLY use {COUPON_CODE} when replacing an ACTUAL code VALUE:
+  ✓ "apply BUS250" → "apply {COUPON_CODE}"
+  ✓ "use WELCOMEMMT code" → "use {COUPON_CODE} code"
+  ✓ "enter FIRST coupon" → "enter {COUPON_CODE} coupon"
+  
+  ONLY use {BUS_TYPE} when replacing a SPECIFIC bus brand/type:
+  ✓ "book a Volvo bus" → "book a {BUS_TYPE} bus"
+  ✓ "Scania Multi Axle sleeper" → "{BUS_TYPE} sleeper"
+  
+  Rule applies to ALL entities:
+  - "a bus" stays as "a bus" (not {BUS_TYPE})
+  - "the operator" stays as "the operator" (not {OPERATOR})
+  - "pickup point" stays as "pickup point" (not {PICKUP_POINT})
+  - "coupon code" stays as "coupon code" (not {COUPON_CODE})
 
   ✗ "any concession " → template: "any concession"
   ✓ "any concession for bus from Mumbai to Pune?" → Process if bus is mentioned

@@ -249,6 +249,47 @@ ENTITY_VALUES: Dict[str, List[str]] = {
 
 
 class EntityValueRegistry:
+    # Generic words that must NEVER be added as entity values
+    BLOCKED_VALUES = {
+        "BUS_TYPE": {
+            "bus", "buses", "a bus", "the bus", "bus journey",
+            "bus transportation", "bus ticket", "bus tickets",
+            "bus booking", "bus service", "bus route", "bus travel",
+            "bus options", "bus availability", "bus schedule",
+            "bus timings", "bus operator", "bus stop",
+        },
+        "COUPON_CODE": {
+            "coupon code", "promo code", "discount code", "code",
+            "coupon", "coupons", "promo", "promos", "discount", "discounts",
+        },
+        "DEALS": {
+            "deal", "deals", "discount", "discounts", "offer", "offers",
+            "coupon", "coupons", "promo", "promos",
+        },
+        "OPERATOR": {
+            "operator", "the operator", "bus operator",
+        },
+        "PRICE": {
+            "price", "fare", "cost", "amount", "charge", "fee",
+            "charges", "fees", "pricing", "rate", "rates",
+        },
+        "PICKUP_POINT": {
+            "pickup point", "boarding point", "pickup", "boarding",
+        },
+        "DROP_POINT": {
+            "drop point", "dropping point", "drop", "dropping",
+        },
+        "ADD_ONS": {
+            "add-on", "add on", "addon",
+        },
+        "AMENITIES": {
+            "amenity", "amenities", "facility", "facilities",
+        },
+        "SEMANTIC": {
+            "search", "find", "show", "book",
+        },
+    }
+
     def __init__(self, storage_path: str):
         self.storage_path = storage_path
         self._values = {k: list(v) for k, v in ENTITY_VALUES.items()}
@@ -278,9 +319,17 @@ class EntityValueRegistry:
             self._values[label] = []
             self._lower_sets[label] = set()
 
+    def _is_blocked(self, label: str, value: str) -> bool:
+        """Check if a value is on the blocklist for a given label."""
+        lowered = value.lower().strip()
+        blocked_set = self.BLOCKED_VALUES.get(label, set())
+        return lowered in blocked_set
+
     def _add_value(self, label: str, value: str) -> bool:
         lowered = value.lower()
         if lowered in self._lower_sets[label]:
+            return False
+        if self._is_blocked(label, value):
             return False
         self._values[label].append(value)
         self._lower_sets[label].add(lowered)

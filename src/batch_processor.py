@@ -6,7 +6,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 from src.openai_client import AzureOpenAIClient
 from src.result_writer import ResultWriter
-from src.entity_value_registry import EntityValueRegistry
+from src.entity_value_registry import EntityValueRegistry, ENTITY_VALUES
 from utils.logger import Logger
 
 
@@ -101,12 +101,19 @@ class BatchProcessor:
         if not clean_lower.strip():
             return []
 
+        # Get blocked values to skip generic words
+        blocked = EntityValueRegistry.BLOCKED_VALUES
+
         # Collect (label, value) sorted longest-first to prefer longest match
         candidates: List[tuple] = []
         for label, values in reference_values.items():
+            label_blocked = blocked.get(label, set())
             for val in values:
                 val = val.strip()
                 if len(val) < 2:
+                    continue
+                # Skip blocked/generic values
+                if val.lower().strip() in label_blocked:
                     continue
                 candidates.append((label, val))
         candidates.sort(key=lambda x: len(x[1]), reverse=True)
@@ -296,6 +303,7 @@ class BatchProcessor:
 
         semaphore = asyncio.Semaphore(self.concurrency)
         batch: List[str] = []
+        total_processed = 0
 
         for line in read_jsonl_lines(self.input_path, already_done):
             try:
@@ -309,10 +317,17 @@ class BatchProcessor:
             batch.append(query)
             if len(batch) >= self.batch_size:
                 await self._process_batch_group(batch, semaphore)
+                total_processed += len(batch)
+                # Log progress every 10 batches (or every batch_size * 10 queries)
+                if total_processed % (self.batch_size * 10) == 0:
+                    self.logger.info(f"✓ Processed {total_processed} queries...")
                 batch = []
 
         if batch:
             await self._process_batch_group(batch, semaphore)
+            total_processed += len(batch)
+        
+        self.logger.info(f"✅ Total processed: {total_processed} queries")
 
     async def _process_batch_group(
         self, batch: List[str], semaphore: asyncio.Semaphore
