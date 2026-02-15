@@ -47,8 +47,6 @@ env/
 *.ipynb_checkpoints/
 
 # Data files (large output/temp files)
-data/templates_output.jsonl
-data/only_template_output.txt
 filtered_queries_*.json
 filtered_queries_*.csv
 gt_querybank_data_dump.json
